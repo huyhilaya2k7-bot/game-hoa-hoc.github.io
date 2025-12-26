@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Chem: Classroom Ultimate</title>
+    <title>Cyber Chem: Classroom Final</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -110,13 +110,13 @@
         .game-over-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none;
             flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; animation: fadeIn 0.5s; background: rgba(0,0,0,0.9);
+            z-index: 10000; animation: fadeIn 0.5s; background: rgba(0,0,0,0.95);
         }
         .game-over-text { font-size: 32px; font-weight: bold; color: white; text-align: center; margin-bottom: 10px; text-shadow: 0 0 20px white; }
         .report-btn {
-            padding: 12px 30px; font-size: 16px; font-weight: bold; border: none; border-radius: 30px;
-            cursor: pointer; margin-top: 15px; text-decoration: none; display: inline-block;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+            padding: 15px 30px; font-size: 18px; font-weight: bold; border: none; border-radius: 30px;
+            cursor: pointer; margin-top: 20px; text-decoration: none; display: inline-block;
+            box-shadow: 0 0 20px var(--neon-green); color: black; background: var(--neon-green);
         }
 
         @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
@@ -140,9 +140,11 @@
 
     <div class="game-over-overlay" id="endScreen">
         <div class="game-over-text" id="endMessage"></div>
-        <div style="color:#ddd; margin-bottom: 20px;" id="endSubMessage"></div>
-        <a id="submitBtn" class="report-btn" target="_blank">NỘP KẾT QUẢ CHO GV &#10148;</a>
-        <button onclick="location.reload()" style="margin-top:20px; background:transparent; border:1px solid #555; color:#aaa; padding:8px 20px; border-radius:20px; cursor:pointer;">Chơi Lại (Reset)</button>
+        <div style="color:#ddd; margin-bottom: 20px; font-size: 16px;" id="endSubMessage"></div>
+        
+        <a id="submitBtn" class="report-btn" target="_blank">GỬI KẾT QUẢ CHO GV &#10148;</a>
+        
+        <button onclick="location.reload()" style="margin-top:30px; background:transparent; border:1px solid #777; color:#aaa; padding:10px 25px; border-radius:20px; cursor:pointer;">Chơi Lại (Reset)</button>
     </div>
 
     <div class="header">
@@ -158,8 +160,7 @@
 
     <script>
         // ==========================================================
-        // KHU VỰC CÀI ĐẶT CỦA GIÁO VIÊN
-        // Dán Link Google Form (Pre-filled) vào giữa hai dấu ngoặc kép dưới đây:
+        // Dán Link Google Form (Pre-filled) của bạn vào dưới đây:
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHuAcL2XG8KZ2zoYl7BCJ4fqqKczB1TpSAHGhOJuVI48hLbg/viewform?usp=pp_url&entry.1300305870="; 
         // ==========================================================
 
@@ -295,8 +296,10 @@
                 selectedCardDiv.style.opacity = '0'; setTimeout(()=>selectedCardDiv.remove(), 200);
                 selectedElement=null; selectedCardDiv=null;
                 
-                if(document.getElementById('hand-container').children.length <= 1) { // 1 vì cái đang xóa chưa remove hẳn
-                    setTimeout(()=>endGame("WIN"), 1000);
+                // --- PHẦN SỬA LỖI QUAN TRỌNG: ĐẾM SỐ Ô ĐÃ ĐIỀN ĐỂ XÁC ĐỊNH THẮNG ---
+                const filledCount = document.querySelectorAll('.slot.filled').length;
+                if(filledCount === elementsData.length) { 
+                    setTimeout(()=>endGame("WIN"), 500);
                 }
             } else {
                 // SAI
@@ -326,23 +329,23 @@
             if (GOOGLE_FORM_URL === "") {
                 btn.style.display = "none"; sub.innerText = "(Giáo viên chưa cài đặt link nộp bài)";
             } else {
+                // TẠO LINK NỘP BÀI
                 const finalLink = `${GOOGLE_FORM_URL}${encodeURIComponent(currentUser)} - ${status}`;
                 btn.href = finalLink;
+                btn.style.display = "inline-block"; // Hiện nút
             }
 
             if (status === "WIN") {
                 playSound('win'); startConfetti();
-                screen.style.background = "rgba(0, 50, 0, 0.9)";
+                screen.style.background = "rgba(0, 50, 0, 0.95)";
                 msg.innerText = "NHIỆM VỤ HOÀN THÀNH!";
                 msg.style.color = "#00ff9d";
                 sub.innerText = "Em đã xuất sắc chinh phục bảng tuần hoàn.";
-                btn.style.background = "#00ff9d"; btn.style.color = "#000";
             } else {
                 playSound('fail');
                 screen.style.background = "var(--game-over-purple)";
                 msg.innerText = "HỆ THỐNG QUÁ TẢI!";
                 sub.innerText = "Bạn đã sai quá 3 lần.";
-                btn.style.background = "#ff0055"; btn.style.color = "#fff";
             }
         }
 

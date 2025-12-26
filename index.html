@@ -3,40 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Chem: Bảng Tuần Hoàn</title>
+    <title>Cyber Chem: Survival Mode</title>
     <style>
         :root {
-            --bg-color: #0f172a; /* Xanh đen vũ trụ */
-            --card-bg: #1e293b;
+            --bg-color: #0f172a;
             --neon-blue: #00f3ff;
             --neon-green: #00ff9d;
             --neon-red: #ff0055;
-            --text-main: #e2e8f0;
+            --game-over-purple: #6a0dad; /* Màu tím bạn yêu cầu */
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-main);
+            color: #e2e8f0;
             margin: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            user-select: none; /* Chống bôi đen text khi chơi */
+            user-select: none;
+            transition: background-color 1s ease; /* Hiệu ứng chuyển màu nền từ từ */
         }
 
         /* --- HEADER --- */
         .header {
-            text-align: center;
-            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
             background: rgba(30, 41, 59, 0.9);
             border-bottom: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
             z-index: 10;
         }
-        .header h2 { margin: 0; font-size: 18px; color: var(--neon-blue); text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 5px var(--neon-blue); }
-        .score-board { font-size: 12px; margin-top: 5px; color: #94a3b8; }
+        .title-box h2 { margin: 0; font-size: 16px; color: var(--neon-blue); text-transform: uppercase; }
+        .title-box p { margin: 0; font-size: 11px; color: #94a3b8; }
+        
+        /* Trái tim mạng sống */
+        .lives-box {
+            font-size: 20px;
+            color: var(--neon-red);
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px var(--neon-red);
+        }
 
         /* --- BẢNG TUẦN HOÀN --- */
         #board-wrapper {
@@ -44,7 +54,6 @@
             overflow: auto;
             padding: 20px;
             position: relative;
-            /* Tạo lưới nền cyber */
             background-image: linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
             linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
             background-size: 20px 20px;
@@ -60,45 +69,29 @@
         }
 
         .label-cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            color: #64748b;
-            font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: #64748b; font-weight: bold;
         }
         .label-col { color: var(--neon-blue); }
         .label-row { color: var(--neon-green); }
 
         .slot {
-            width: 42px;
-            height: 42px;
+            width: 42px; height: 42px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold;
+            cursor: pointer; position: relative;
         }
 
-        /* Hiệu ứng khi bấm vào ô */
-        .slot:active { transform: scale(0.9); }
-
-        /* Khi điền đúng */
+        .slot:active { transform: scale(0.95); }
         .slot.filled {
             background: rgba(0, 255, 157, 0.2);
             border: 1px solid var(--neon-green);
             color: var(--neon-green);
-            box-shadow: 0 0 10px var(--neon-green), inset 0 0 10px rgba(0, 255, 157, 0.2);
-            text-shadow: 0 0 5px var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
         }
-
-        /* Khi điền sai */
         .slot.incorrect {
             animation: shake 0.4s;
             background: rgba(255, 0, 85, 0.3);
@@ -108,102 +101,92 @@
         /* --- KHU VỰC THẺ BÀI --- */
         #hand-container {
             flex: 1;
-            padding: 15px;
+            padding: 10px;
             background: #0b1120;
             border-top: 1px solid #334155;
             overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center;
         }
 
         .card-info {
-            width: 95%;
-            max-width: 400px;
+            width: 95%; max-width: 400px;
             background: linear-gradient(145deg, #1e293b, #0f172a);
             border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 10px;
-            margin-bottom: 12px;
-            display: grid;
-            grid-template-columns: 60px 1fr auto;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            border-radius: 10px; padding: 8px; margin-bottom: 8px;
+            display: grid; grid-template-columns: 50px 1fr auto;
+            align-items: center; gap: 10px; cursor: pointer;
         }
-
-        .card-info:hover { transform: translateY(-2px); }
 
         .card-info.selected {
             border: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
             background: #1e293b;
-            transform: scale(1.02);
         }
 
         .symbol-large {
-            font-size: 28px; font-weight: bold; color: white;
-            background: var(--neon-blue);
-            width: 50px; height: 50px;
-            border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: bold; color: white;
+            background: var(--neon-blue); width: 45px; height: 45px;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
             text-shadow: 1px 1px 2px black;
-            box-shadow: 0 0 10px var(--neon-blue);
         }
+        .details b { color: var(--neon-blue); font-size: 15px; }
+        .details .hint { color: #94a3b8; font-size: 12px; font-style: italic; display: block; }
+        .z-tag { background: #334155; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: bold; }
 
-        .details b { color: var(--neon-blue); font-size: 16px; }
-        .details .hint { color: #94a3b8; font-size: 13px; font-style: italic; display: block; margin-top: 4px; }
-        .details .hint span { color: var(--neon-green); font-weight: bold; } /* Highlight cấu hình e */
-
-        .z-tag {
-            background: #334155; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #fff;
-        }
-
-        .empty-space { visibility: hidden; pointer-events: none; }
-
-        /* --- HIỆU ỨNG ANIMATION --- */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-
-        /* Hạt nổ (Particles) */
-        .particle {
-            position: absolute;
-            width: 6px; height: 6px;
-            background: var(--neon-green);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 100;
-        }
-
-        /* Pháo hoa */
-        #confetti-canvas {
+        /* --- GAME OVER SCREEN --- */
+        .game-over-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 999;
+            background: rgba(75, 0, 130, 0.9); /* Nền tím đậm */
+            display: none; /* Ẩn mặc định */
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 1s;
         }
 
+        .game-over-text {
+            font-size: 40px; font-weight: bold; color: #fff;
+            text-shadow: 0 0 20px #ff00ff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .restart-btn {
+            padding: 10px 30px; font-size: 18px;
+            background: #fff; color: #4b0082; border: none; border-radius: 50px;
+            font-weight: bold; cursor: pointer; box-shadow: 0 0 15px #fff;
+        }
+
+        /* --- ANIMATION --- */
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Particle & Confetti */
+        .particle { position: absolute; width: 6px; height: 6px; background: var(--neon-green); border-radius: 50%; pointer-events: none; z-index: 100; }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
     </style>
 </head>
 <body>
 
     <canvas id="confetti-canvas"></canvas>
 
+    <div class="game-over-overlay" id="gameOverScreen">
+        <div class="game-over-text">SYSTEM FAILURE<br>GAME OVER</div>
+        <div style="color: white; margin-bottom: 20px;">Bạn đã sai quá 3 lần!</div>
+        <button class="restart-btn" onclick="location.reload()">THỬ LẠI</button>
+    </div>
+
     <div class="header">
-        <h2>Cyber Chem: Elements</h2>
-        <div class="score-board" id="status-text">CHẠM THẺ &rarr; CHỌN VỊ TRÍ</div>
+        <div class="title-box">
+            <h2>Cyber Chem</h2>
+            <p id="status-text">Chọn thẻ &rarr; Tìm vị trí</p>
+        </div>
+        <div class="lives-box" id="lives-display">❤❤❤</div>
     </div>
 
     <div id="board-wrapper">
-        <div class="grid-container" id="periodic-table">
-            </div>
+        <div class="grid-container" id="periodic-table"></div>
     </div>
 
-    <div id="hand-container">
-        </div>
+    <div id="hand-container"></div>
 
     <script>
         /* --- DỮ LIỆU --- */
@@ -231,120 +214,72 @@
         ];
 
         const groupLabels = ['', 'IA', 'IIA', '', '', '', '', '', '', '', '', '', '', 'IIIA', 'IVA', 'VA', 'VIA', 'VIIA', 'VIIIA'];
-
+        
         let selectedElement = null;
         let selectedCardDiv = null;
+        let lives = 3; // MẠNG SỐNG BAN ĐẦU
+        let gameActive = true;
 
         const table = document.getElementById('periodic-table');
         const hand = document.getElementById('hand-container');
         const statusText = document.getElementById('status-text');
+        const livesDisplay = document.getElementById('lives-display');
+        const gameOverScreen = document.getElementById('gameOverScreen');
 
-        /* --- HỆ THỐNG ÂM THANH (Web Audio API - Không cần file) --- */
+        // AUDIO
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            osc.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            
             if (type === 'correct') {
-                // Tiếng "Ting" cao vút
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
-                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.5);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(500, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime+0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.5);
+                osc.start(); osc.stop(audioCtx.currentTime+0.5);
             } else if (type === 'wrong') {
-                // Tiếng "Buzz" trầm
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
-                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } else if (type === 'win') {
-                // Hợp âm chiến thắng
-                [440, 554, 659].forEach((freq, i) => {
-                    const o = audioCtx.createOscillator();
-                    const g = audioCtx.createGain();
-                    o.connect(g); g.connect(audioCtx.destination);
-                    o.type = 'triangle';
-                    o.frequency.value = freq;
-                    g.gain.setValueAtTime(0.2, audioCtx.currentTime + i*0.1);
-                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i*0.1 + 2);
-                    o.start(audioCtx.currentTime + i*0.1);
-                    o.stop(audioCtx.currentTime + i*0.1 + 2);
-                });
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime+0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+0.3);
+                osc.start(); osc.stop(audioCtx.currentTime+0.3);
+            } else if (type === 'fail') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(100, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime+1);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+1);
+                osc.start(); osc.stop(audioCtx.currentTime+1);
             }
         }
 
-        /* --- HỆ THỐNG HIỆU ỨNG HẠT (Particles) --- */
+        // PARTICLES
         function createParticles(x, y) {
             for (let i = 0; i < 15; i++) {
                 const p = document.createElement('div');
                 p.classList.add('particle');
                 document.body.appendChild(p);
-                
-                // Vị trí ngẫu nhiên xung quanh điểm click
                 const angle = Math.random() * Math.PI * 2;
-                const velocity = 2 + Math.random() * 5;
                 const tx = Math.cos(angle) * 50 * Math.random();
                 const ty = Math.sin(angle) * 50 * Math.random();
-
-                p.style.left = x + 'px';
-                p.style.top = y + 'px';
-                
-                // Animation bằng Web Animations API
-                p.animate([
-                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
-                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
-                ], {
-                    duration: 500 + Math.random() * 300,
-                    easing: 'cubic-bezier(0, .9, .57, 1)',
-                }).onfinish = () => p.remove();
+                p.style.left = x + 'px'; p.style.top = y + 'px';
+                p.animate([{transform:'translate(0,0) scale(1)', opacity:1}, {transform:`translate(${tx}px,${ty}px) scale(0)`, opacity:0}], {duration: 600, easing:'ease-out'}).onfinish = () => p.remove();
             }
         }
 
-        /* --- LOGIC GAME --- */
+        // INIT BOARD
         function initBoard() {
-            // Góc trái
-            let corner = document.createElement('div');
-            corner.className = 'label-cell';
-            corner.innerHTML = "CK/N";
-            table.appendChild(corner);
-
-            // Nhóm
+            let corner = document.createElement('div'); corner.className = 'label-cell'; corner.innerHTML = "CK/N"; table.appendChild(corner);
             for (let c = 1; c <= 18; c++) {
-                let colLabel = document.createElement('div');
-                colLabel.className = 'label-cell label-col';
-                colLabel.innerText = groupLabels[c] || c;
-                if(!groupLabels[c]) colLabel.style.opacity = "0.2";
-                table.appendChild(colLabel);
+                let l = document.createElement('div'); l.className = 'label-cell label-col'; l.innerText = groupLabels[c] || c; 
+                if(!groupLabels[c]) l.style.opacity = "0.2"; table.appendChild(l);
             }
-
-            // Hàng + Ô
             for (let r = 1; r <= 7; r++) {
-                let rowLabel = document.createElement('div');
-                rowLabel.className = 'label-cell label-row';
-                rowLabel.innerText = r;
-                table.appendChild(rowLabel);
-
+                let l = document.createElement('div'); l.className = 'label-cell label-row'; l.innerText = r; table.appendChild(l);
                 for (let c = 1; c <= 18; c++) {
                     const slot = document.createElement('div');
-                    const targetEl = elementsData.find(e => e.row === r && e.col === c);
-
-                    if (targetEl) {
-                        slot.className = 'slot';
-                        slot.dataset.z = targetEl.z;
-                        slot.onclick = (e) => handleSlotClick(slot, e);
+                    const target = elementsData.find(e => e.row === r && e.col === c);
+                    if (target) {
+                        slot.className = 'slot'; slot.dataset.z = target.z; slot.onclick = (e) => handleSlotClick(slot);
                     } else {
-                        const isMainBlock = (r <= 3 && (c<=2 || c>=13)) || (r==4 && c<=2);
-                        slot.className = isMainBlock || r > 4 ? 'slot empty-space' : 'slot empty-space';
+                        const isMain = (r <= 3 && (c<=2 || c>=13)) || (r==4 && c<=2);
+                        slot.className = 'slot empty-space';
                     }
                     table.appendChild(slot);
                 }
@@ -352,119 +287,87 @@
         }
 
         function initHand() {
-            const shuffled = [...elementsData].sort(() => 0.5 - Math.random());
-            shuffled.forEach(el => {
-                const card = document.createElement('div');
-                card.className = 'card-info';
-                card.innerHTML = `
-                    <div class="symbol-large">${el.sym}</div>
-                    <div class="details">
-                        <b>${el.name}</b>
-                        <span class="hint">Cấu hình: <span>${el.conf}</span></span>
-                    </div>
-                    <div class="z-tag">Z = ${el.z}</div>
-                `;
-                card.onclick = () => selectCard(el, card);
-                hand.appendChild(card);
+            [...elementsData].sort(() => 0.5 - Math.random()).forEach(el => {
+                const c = document.createElement('div'); c.className = 'card-info';
+                c.innerHTML = `<div class="symbol-large">${el.sym}</div><div class="details"><b>${el.name}</b><span class="hint">Cấu hình: <span>${el.conf}</span></span></div><div class="z-tag">Z=${el.z}</div>`;
+                c.onclick = () => selectCard(el, c);
+                hand.appendChild(c);
             });
         }
 
-        function selectCard(elData, cardDiv) {
-            // Hiệu ứng rung nhẹ khi chọn (Haptic feedback giả lập)
-            if (navigator.vibrate) navigator.vibrate(10); 
-            
+        function selectCard(el, div) {
+            if (!gameActive) return;
             if (selectedCardDiv) selectedCardDiv.classList.remove('selected');
-            selectedElement = elData;
-            selectedCardDiv = cardDiv;
-            cardDiv.classList.add('selected');
-            statusText.innerText = `ĐANG CHỌN: ${elData.name.toUpperCase()} (Z=${elData.z})`;
+            selectedElement = el; selectedCardDiv = div;
+            div.classList.add('selected');
+            statusText.innerText = `Chọn vị trí cho: ${el.name}`;
             statusText.style.color = "var(--neon-blue)";
         }
 
-        function handleSlotClick(slot, event) {
-            if (!selectedElement) return;
-            if (slot.classList.contains('filled')) return;
+        function handleSlotClick(slot) {
+            if (!gameActive || !selectedElement || slot.classList.contains('filled')) return;
 
             if (selectedElement.z === parseInt(slot.dataset.z)) {
-                // --- ĐÚNG ---
-                slot.classList.add('filled');
-                slot.innerText = selectedElement.sym;
-                
-                playSound('correct'); // Âm thanh
-                
-                // Hiệu ứng hạt nổ ngay ngón tay
-                const rect = slot.getBoundingClientRect();
-                createParticles(rect.left + rect.width/2, rect.top + rect.height/2);
-
-                selectedCardDiv.style.opacity = '0';
-                setTimeout(() => selectedCardDiv.remove(), 300);
-                
-                selectedElement = null; 
-                selectedCardDiv = null;
-                statusText.innerText = "CHÍNH XÁC! TUYỆT VỜI.";
-                statusText.style.color = "var(--neon-green)";
-
-                // Check Win
-                if (hand.children.length <= 1) { // 1 vì cái thẻ đang xóa chưa remove hẳn
-                    setTimeout(() => {
-                        playSound('win');
-                        startConfetti();
-                        statusText.innerText = "NHIỆM VỤ HOÀN THÀNH!";
-                        alert("MISSION COMPLETE!\nBạn là bậc thầy bảng tuần hoàn.");
-                    }, 500);
-                }
-
+                // ĐÚNG
+                slot.classList.add('filled'); slot.innerText = selectedElement.sym;
+                playSound('correct');
+                const rect = slot.getBoundingClientRect(); createParticles(rect.left+20, rect.top+20);
+                selectedCardDiv.style.opacity = '0'; setTimeout(() => selectedCardDiv.remove(), 300);
+                selectedElement = null; selectedCardDiv = null;
+                statusText.innerText = "CHÍNH XÁC!"; statusText.style.color = "var(--neon-green)";
+                if (hand.children.length <= 1) { setTimeout(() => { startConfetti(); alert("CHIẾN THẮNG!"); }, 500); }
             } else {
-                // --- SAI ---
-                slot.classList.add('incorrect');
+                // SAI
+                slot.classList.add('incorrect'); setTimeout(() => slot.classList.remove('incorrect'), 500);
                 playSound('wrong');
-                if (navigator.vibrate) navigator.vibrate([50, 50, 50]); // Rung điện thoại
-                setTimeout(() => slot.classList.remove('incorrect'), 500);
+                if(navigator.vibrate) navigator.vibrate(100);
                 
-                statusText.innerText = "SAI VỊ TRÍ! KIỂM TRA LẠI SỐ LỚP VÀ E LỚP NGOÀI CÙNG.";
-                statusText.style.color = "var(--neon-red)";
+                // TRỪ MẠNG
+                lives--;
+                updateLivesUI();
+                
+                if (lives === 0) {
+                    triggerGameOver();
+                } else {
+                    statusText.innerText = `SAI RỒI! CÒN ${lives} LƯỢT THỬ.`;
+                    statusText.style.color = "var(--neon-red)";
+                }
             }
         }
 
-        /* --- PHÁO HOA ĐƠN GIẢN (CONFETTI) --- */
+        function updateLivesUI() {
+            let heartString = "";
+            for(let i=0; i<lives; i++) heartString += "❤";
+            livesDisplay.innerText = heartString;
+        }
+
+        function triggerGameOver() {
+            gameActive = false;
+            playSound('fail');
+            // Biến màn hình thành màu tím
+            document.body.style.backgroundColor = "var(--game-over-purple)";
+            // Ẩn bảng và tay bài đi cho đỡ rối (hoặc để mờ)
+            document.getElementById('board-wrapper').style.opacity = "0.1";
+            document.getElementById('hand-container').style.opacity = "0.1";
+            // Hiện overlay
+            gameOverScreen.style.display = "flex";
+        }
+
         function startConfetti() {
             const canvas = document.getElementById('confetti-canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            
-            const pieces = [];
-            const colors = ['#00f3ff', '#00ff9d', '#ff0055', '#ffff00'];
-
-            for(let i=0; i<100; i++) {
-                pieces.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height - canvas.height,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    size: Math.random() * 8 + 4,
-                    speed: Math.random() * 5 + 2,
-                    angle: Math.random() * 6
-                });
-            }
-
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const pieces = []; const colors = ['#00f3ff', '#00ff9d', '#ff0055'];
+            for(let i=0; i<100; i++) pieces.push({x: Math.random()*canvas.width, y: -20, color: colors[Math.floor(Math.random()*3)], size: Math.random()*8+4, speed: Math.random()*5+2});
             function draw() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                pieces.forEach(p => {
-                    ctx.fillStyle = p.color;
-                    ctx.fillRect(p.x, p.y, p.size, p.size);
-                    p.y += p.speed;
-                    p.x += Math.sin(p.angle);
-                    p.angle += 0.1;
-                    if(p.y > canvas.height) p.y = -20;
-                });
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                pieces.forEach(p => { ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.size,p.size); p.y+=p.speed; if(p.y>canvas.height) p.y=-20; });
                 requestAnimationFrame(draw);
             }
             draw();
         }
 
-        initBoard();
-        initHand();
-
+        initBoard(); initHand();
     </script>
 </body>
 </html>

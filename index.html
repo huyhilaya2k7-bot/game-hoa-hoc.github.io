@@ -3,88 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Chem: Classroom</title>
+    <title>Cyber Chem: Classroom Ultimate</title>
     <style>
         :root {
             --bg-color: #0f172a;
             --neon-blue: #00f3ff;
             --neon-green: #00ff9d;
             --neon-red: #ff0055;
-            --purple: #6a0dad;
+            --game-over-purple: #6a0dad;
         }
 
         body {
             font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-color);
-            color: #e2e8f0; margin: 0; height: 100vh;
-            display: flex; flex-direction: column; overflow: hidden; user-select: none;
+            color: #e2e8f0;
+            margin: 0; height: 100vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            user-select: none; transition: background 1s;
         }
 
         /* --- LOGIN SCREEN --- */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #020617; z-index: 99999;
+            background: rgba(15, 23, 42, 0.98); z-index: 99999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .login-box {
-            width: 80%; max-width: 300px;
-            text-align: center;
+            width: 80%; max-width: 320px; text-align: center;
+            border: 2px solid var(--neon-blue); padding: 30px; border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
+            background: #1e293b;
         }
         .login-input {
-            width: 100%; padding: 15px; margin: 20px 0;
-            background: #1e293b; border: 2px solid var(--neon-blue);
-            color: white; font-size: 18px; border-radius: 8px; outline: none; text-align: center;
+            width: 100%; padding: 12px; margin: 20px 0; box-sizing: border-box;
+            background: #0f172a; border: 1px solid var(--neon-blue);
+            color: white; font-size: 16px; border-radius: 8px; outline: none; text-align: center;
         }
         .start-btn {
             background: var(--neon-blue); color: #000;
-            padding: 12px 40px; font-size: 20px; font-weight: bold; border: none;
+            padding: 12px 40px; font-size: 18px; font-weight: bold; border: none;
             border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px var(--neon-blue);
+            transition: transform 0.2s;
         }
+        .start-btn:active { transform: scale(0.95); }
 
         /* --- HEADER --- */
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 15px; background: rgba(30, 41, 59, 0.95);
+            padding: 10px 15px; background: rgba(30, 41, 59, 0.9);
             border-bottom: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); z-index: 10;
         }
-        .student-name { color: var(--neon-blue); font-weight: bold; font-size: 14px; text-transform: uppercase; border: 1px solid var(--neon-blue); padding: 4px 8px; border-radius: 4px; }
-        .lives-box { font-size: 20px; color: var(--neon-red); letter-spacing: 3px; }
+        .student-name { 
+            color: var(--neon-blue); font-weight: bold; font-size: 14px; 
+            text-transform: uppercase; border: 1px solid var(--neon-blue); 
+            padding: 5px 10px; border-radius: 20px; box-shadow: 0 0 5px var(--neon-blue);
+        }
+        .lives-box { font-size: 22px; color: var(--neon-red); letter-spacing: 3px; text-shadow: 0 0 10px var(--neon-red); }
 
-        /* --- GAME OVER --- */
-        .game-over-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 10000; animation: fadeIn 1s;
+        /* --- BẢNG TUẦN HOÀN --- */
+        #board-wrapper {
+            flex: 2; overflow: auto; padding: 20px; position: relative;
+            background-image: linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
         }
-        .game-over-text { font-size: 30px; font-weight: bold; color: white; text-align: center; margin-bottom: 20px; }
-        .report-btn {
-            padding: 15px 30px; font-size: 18px; font-weight: bold;
-            border: none; border-radius: 50px; cursor: pointer; margin-top: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5); text-decoration: none; display: inline-block;
+        .grid-container {
+            display: grid; grid-template-columns: 25px repeat(18, 40px); grid-template-rows: 25px repeat(7, 40px);
+            gap: 3px; width: max-content; margin: 0 auto;
         }
-
-        /* --- BẢNG VÀ THẺ --- */
-        #board-wrapper { flex: 2; overflow: auto; padding: 20px; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
-        .grid-container { display: grid; grid-template-columns: 25px repeat(18, 40px); grid-template-rows: 25px repeat(7, 40px); gap: 3px; margin: 0 auto; width: max-content; }
-        .label-cell { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #64748b; }
-        .slot { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border: 1px solid #334155; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border-radius: 4px; }
-        .slot.filled { background: rgba(0,255,157,0.2); border-color: var(--neon-green); color: var(--neon-green); }
-        .slot.incorrect { background: rgba(255,0,85,0.3); border-color: var(--neon-red); }
+        .label-cell { display: flex; align-items: center; justify-content: center; font-size: 10px; color: #64748b; font-weight: bold; }
+        .label-col { color: var(--neon-blue); } .label-row { color: var(--neon-green); }
         
-        #hand-container { flex: 1; padding: 10px; background: #0b1120; border-top: 1px solid #334155; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
-        .card-info { width: 95%; max-width: 400px; background: #1e293b; border: 1px solid #334155; padding: 8px; margin-bottom: 8px; display: grid; grid-template-columns: 50px 1fr auto; align-items: center; border-radius: 8px; }
-        .card-info.selected { border: 2px solid var(--neon-blue); background: #0f172a; }
-        .symbol-large { font-size: 20px; font-weight: bold; color: white; background: var(--neon-blue); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 6px; text-shadow: 1px 1px 1px black;}
+        .slot {
+            width: 40px; height: 40px; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 5px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: bold; cursor: pointer; position: relative;
+        }
+        .slot.filled {
+            background: rgba(0, 255, 157, 0.2); border: 1px solid var(--neon-green);
+            color: var(--neon-green); box-shadow: 0 0 10px var(--neon-green);
+        }
+        .slot.incorrect { animation: shake 0.4s; background: rgba(255, 0, 85, 0.3); border: 1px solid var(--neon-red); }
 
-        @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+        /* --- HAND --- */
+        #hand-container {
+            flex: 1; padding: 10px; background: #0b1120; border-top: 1px solid #334155;
+            overflow-y: auto; display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+        .card-info {
+            width: 95%; max-width: 400px; background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155; border-radius: 10px; padding: 8px; margin-bottom: 8px;
+            display: grid; grid-template-columns: 45px 1fr auto; align-items: center; gap: 10px;
+            transition: transform 0.2s; cursor: pointer;
+        }
+        .card-info.selected { border: 2px solid var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); transform: scale(1.02); }
+        .symbol-large {
+            font-size: 22px; font-weight: bold; color: white; background: var(--neon-blue);
+            width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            text-shadow: 1px 1px 2px black;
+        }
+
+        /* --- END SCREEN --- */
+        .game-over-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10000; animation: fadeIn 0.5s; background: rgba(0,0,0,0.9);
+        }
+        .game-over-text { font-size: 32px; font-weight: bold; color: white; text-align: center; margin-bottom: 10px; text-shadow: 0 0 20px white; }
+        .report-btn {
+            padding: 12px 30px; font-size: 16px; font-weight: bold; border: none; border-radius: 30px;
+            cursor: pointer; margin-top: 15px; text-decoration: none; display: inline-block;
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+        }
+
+        @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .particle { position: absolute; width: 5px; height: 5px; background: var(--neon-green); border-radius: 50%; pointer-events: none; z-index: 100; }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
     </style>
 </head>
 <body>
 
+    <canvas id="confetti-canvas"></canvas>
+
     <div id="login-overlay">
         <div class="login-box">
-            <h2 style="color:var(--neon-blue); margin-bottom:10px;">LỚP HỌC KẾT NỐI</h2>
-            <p style="color:#94a3b8">Vui lòng nhập họ tên thật để lấy điểm</p>
+            <h2 style="color:var(--neon-blue); margin:0 0 10px 0;">CYBER CHEM</h2>
+            <p style="color:#94a3b8; font-size:14px;">Nhập họ tên để bắt đầu nhiệm vụ</p>
             <input type="text" id="studentNameInput" class="login-input" placeholder="Ví dụ: Nguyễn Văn A">
             <button class="start-btn" onclick="startGame()">VÀO LỚP</button>
         </div>
@@ -92,13 +140,13 @@
 
     <div class="game-over-overlay" id="endScreen">
         <div class="game-over-text" id="endMessage"></div>
-        <div style="color:#ccc; margin-bottom: 20px;" id="endSubMessage"></div>
-        <a id="submitBtn" class="report-btn" target="_blank">GỬI KẾT QUẢ CHO GV &#10148;</a>
-        <button onclick="location.reload()" style="margin-top:20px; background:transparent; border:1px solid #fff; color:#fff; padding:10px 20px; border-radius:20px;">Chơi Lại</button>
+        <div style="color:#ddd; margin-bottom: 20px;" id="endSubMessage"></div>
+        <a id="submitBtn" class="report-btn" target="_blank">NỘP KẾT QUẢ CHO GV &#10148;</a>
+        <button onclick="location.reload()" style="margin-top:20px; background:transparent; border:1px solid #555; color:#aaa; padding:8px 20px; border-radius:20px; cursor:pointer;">Chơi Lại (Reset)</button>
     </div>
 
     <div class="header">
-        <div class="student-name" id="displayStudentName">HỌC SINH</div>
+        <div class="student-name" id="displayStudentName">GUEST</div>
         <div class="lives-box" id="lives-display">&#10084;&#10084;&#10084;</div>
     </div>
 
@@ -109,15 +157,14 @@
     <div id="hand-container"></div>
 
     <script>
-        // --- CẤU HÌNH CỦA GIÁO VIÊN (SẼ SỬA Ở BƯỚC 2) ---
-        // Bạn sẽ dán Link Google Form đã điền sẵn (Pre-filled link) vào đây
-        // Nhớ giữ nguyên các dấu ngoặc kép
-        const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfeG0Q74WqCSRE0TLfksBaWPuXn_MKkKu0NqCn_JEvbH4q77w/viewform?usp=pp_url&entry.946243836="; 
-        // Ví dụ: "https://docs.google.com/forms/d/e/.../viewform?usp=pp_url&entry.123456="
-        
-        // --- DỮ LIỆU GAME ---
+        // ==========================================================
+        // KHU VỰC CÀI ĐẶT CỦA GIÁO VIÊN
+        // Dán Link Google Form (Pre-filled) vào giữa hai dấu ngoặc kép dưới đây:
+        const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHuAcL2XG8KZ2zoYl7BCJ4fqqKczB1TpSAHGhOJuVI48hLbg/viewform?usp=pp_url&entry.1300305870="; 
+        // ==========================================================
+
         const elementsData = [
-             { z: 1, row: 1, col: 1, sym: 'H', name: 'Hydrogen', conf: '1s¹' },
+            { z: 1, row: 1, col: 1, sym: 'H', name: 'Hydrogen', conf: '1s¹' },
             { z: 2, row: 1, col: 18, sym: 'He', name: 'Helium', conf: '1s²' },
             { z: 3, row: 2, col: 1, sym: 'Li', name: 'Lithium', conf: '[He]2s¹' },
             { z: 4, row: 2, col: 2, sym: 'Be', name: 'Beryllium', conf: '[He]2s²' },
@@ -134,27 +181,139 @@
             { z: 15, row: 3, col: 15, sym: 'P', name: 'Phosphorus', conf: '...3s²3p³' },
             { z: 16, row: 3, col: 16, sym: 'S', name: 'Sulfur', conf: '...3s²3p⁴' },
             { z: 17, row: 3, col: 17, sym: 'Cl', name: 'Chlorine', conf: '...3s²3p⁵' },
-            { z: 18, row: 3, col: 18, sym: 'Ar', name: 'Argon', conf: '...3s²3p⁶' }
+            { z: 18, row: 3, col: 18, sym: 'Ar', name: 'Argon', conf: '...3s²3p⁶' },
+            { z: 19, row: 4, col: 1, sym: 'K', name: 'Potassium', conf: '[Ar]4s¹' },
+            { z: 20, row: 4, col: 2, sym: 'Ca', name: 'Calcium', conf: '[Ar]4s²' }
         ];
 
+        const groupLabels = ['', 'IA', 'IIA', '', '', '', '', '', '', '', '', '', '', 'IIIA', 'IVA', 'VA', 'VIA', 'VIIA', 'VIIIA'];
+        
         let currentUser = "";
         let lives = 3;
         let selectedElement = null;
         let selectedCardDiv = null;
         let gameActive = false;
 
-        // BẮT ĐẦU GAME
+        // --- AUDIO SYSTEM ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                osc.type='sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime+0.1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.4);
+                osc.start(); osc.stop(audioCtx.currentTime+0.4);
+            } else if (type === 'wrong') {
+                osc.type='sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime+0.3);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+0.3);
+                osc.start(); osc.stop(audioCtx.currentTime+0.3);
+            } else if (type === 'fail') {
+                osc.type='square'; osc.frequency.setValueAtTime(100, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime+1.5);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime+1.5);
+                osc.start(); osc.stop(audioCtx.currentTime+1.5);
+            } else if (type === 'win') {
+                [440, 554, 659, 880].forEach((f,i)=>{
+                    let o=audioCtx.createOscillator(); let g=audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination); o.type='triangle';
+                    o.frequency.value=f; g.gain.setValueAtTime(0.1, audioCtx.currentTime+i*0.15);
+                    g.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime+i*0.15+1);
+                    o.start(audioCtx.currentTime+i*0.15); o.stop(audioCtx.currentTime+i*0.15+1);
+                });
+            }
+        }
+
+        // --- PARTICLES ---
+        function createParticles(x, y) {
+            for (let i=0; i<12; i++) {
+                const p=document.createElement('div'); p.className='particle'; document.body.appendChild(p);
+                const angle=Math.random()*Math.PI*2; const dist=Math.random()*40+10;
+                const tx=Math.cos(angle)*dist; const ty=Math.sin(angle)*dist;
+                p.style.left=x+'px'; p.style.top=y+'px';
+                p.animate([{transform:'translate(0,0) scale(1)', opacity:1}, {transform:`translate(${tx}px,${ty}px) scale(0)`, opacity:0}], {duration:500, easing:'ease-out'}).onfinish=()=>p.remove();
+            }
+        }
+
+        // --- GAME FLOW ---
         function startGame() {
             const input = document.getElementById('studentNameInput').value.trim();
-            if (!input) { alert("Em chưa nhập tên!"); return; }
+            if (!input) { alert("Vui lòng nhập tên!"); return; }
             currentUser = input;
             document.getElementById('displayStudentName').innerText = currentUser;
             document.getElementById('login-overlay').style.display = 'none';
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             gameActive = true;
             initBoard(); initHand();
         }
 
-        // KẾT THÚC GAME (XỬ LÝ LINK GOOGLE FORM)
+        function initBoard() {
+            const table = document.getElementById('periodic-table'); table.innerHTML = "";
+            let corner = document.createElement('div'); corner.className='label-cell'; corner.innerText="N/CK"; table.appendChild(corner);
+            for(let c=1; c<=18; c++) { let d=document.createElement('div'); d.className='label-cell label-col'; d.innerText=groupLabels[c]||c; if(!groupLabels[c]) d.style.opacity=0.3; table.appendChild(d); }
+            
+            for(let r=1; r<=7; r++) {
+                let rl = document.createElement('div'); rl.className='label-cell label-row'; rl.innerText=r; table.appendChild(rl);
+                for(let c=1; c<=18; c++) {
+                    let slot = document.createElement('div');
+                    let el = elementsData.find(e=>e.row===r && e.col===c);
+                    if(el) {
+                        slot.className='slot'; slot.dataset.z=el.z; slot.onclick=(e)=>handleClick(slot, e);
+                    } else {
+                        const isMain = (r <= 3 && (c<=2 || c>=13)) || (r==4 && c<=2);
+                        slot.className='slot'; slot.style.visibility='hidden';
+                    }
+                    table.appendChild(slot);
+                }
+            }
+        }
+
+        function initHand() {
+            const hand = document.getElementById('hand-container'); hand.innerHTML = "";
+            const shuffled = [...elementsData].sort(()=>0.5-Math.random());
+            shuffled.forEach(el => {
+                let c = document.createElement('div'); c.className='card-info';
+                c.innerHTML = `<div class="symbol-large">${el.sym}</div><div><b style="color:var(--neon-blue)">${el.name}</b><br><small style="color:#aaa">${el.conf}</small></div>`;
+                c.onclick = ()=> {
+                    if(!gameActive) return;
+                    if(navigator.vibrate) navigator.vibrate(5);
+                    if(selectedCardDiv) selectedCardDiv.classList.remove('selected');
+                    selectedCardDiv = c; selectedElement = el; c.classList.add('selected');
+                }
+                hand.appendChild(c);
+            });
+        }
+
+        function handleClick(slot, e) {
+            if(!gameActive || !selectedElement || slot.classList.contains('filled')) return;
+            
+            if(parseInt(slot.dataset.z) === selectedElement.z) {
+                // ĐÚNG
+                slot.className = 'slot filled'; slot.innerText = selectedElement.sym;
+                playSound('correct');
+                const rect = slot.getBoundingClientRect(); createParticles(rect.left+20, rect.top+20);
+                selectedCardDiv.style.opacity = '0'; setTimeout(()=>selectedCardDiv.remove(), 200);
+                selectedElement=null; selectedCardDiv=null;
+                
+                if(document.getElementById('hand-container').children.length <= 1) { // 1 vì cái đang xóa chưa remove hẳn
+                    setTimeout(()=>endGame("WIN"), 1000);
+                }
+            } else {
+                // SAI
+                slot.classList.add('incorrect'); setTimeout(()=>slot.classList.remove('incorrect'), 500);
+                playSound('wrong');
+                if(navigator.vibrate) navigator.vibrate(100);
+                lives--;
+                updateLives();
+                if(lives===0) endGame("LOSE");
+            }
+        }
+
+        function updateLives() {
+            let s = ""; for(let i=0;i<lives;i++) s+="\u2764 ";
+            document.getElementById('lives-display').innerText = s;
+        }
+
         function endGame(status) {
             gameActive = false;
             const screen = document.getElementById('endScreen');
@@ -164,92 +323,41 @@
 
             screen.style.display = 'flex';
             
-            // 1. Tạo Link nộp bài thông minh
-            // Nếu GV chưa cài đặt link thì chỉ hiện thông báo
             if (GOOGLE_FORM_URL === "") {
-                btn.style.display = "none";
-                sub.innerText = "Giáo viên chưa cài đặt link nộp bài.";
+                btn.style.display = "none"; sub.innerText = "(Giáo viên chưa cài đặt link nộp bài)";
             } else {
-                // Ghép tên và kết quả vào link form
-                // Giả sử link là: ...entry.123= (Tên) & entry.456= (Kết quả)
-                // Ta sẽ nối chuỗi đơn giản
                 const finalLink = `${GOOGLE_FORM_URL}${encodeURIComponent(currentUser)} - ${status}`;
                 btn.href = finalLink;
             }
 
             if (status === "WIN") {
-                screen.style.background = "rgba(0, 100, 0, 0.95)";
-                msg.innerText = "CHIẾN THẮNG!";
-                sub.innerText = "Em đã hoàn thành xuất sắc.";
+                playSound('win'); startConfetti();
+                screen.style.background = "rgba(0, 50, 0, 0.9)";
+                msg.innerText = "NHIỆM VỤ HOÀN THÀNH!";
+                msg.style.color = "#00ff9d";
+                sub.innerText = "Em đã xuất sắc chinh phục bảng tuần hoàn.";
                 btn.style.background = "#00ff9d"; btn.style.color = "#000";
             } else {
-                screen.style.background = "rgba(75, 0, 130, 0.95)";
-                msg.innerText = "HẾT MẠNG RỒI!";
-                sub.innerText = "Em đã sai 3 lần.";
+                playSound('fail');
+                screen.style.background = "var(--game-over-purple)";
+                msg.innerText = "HỆ THỐNG QUÁ TẢI!";
+                sub.innerText = "Bạn đã sai quá 3 lần.";
                 btn.style.background = "#ff0055"; btn.style.color = "#fff";
             }
         }
 
-        // --- CORE GAME LOGIC ---
-        function initBoard() {
-            const table = document.getElementById('periodic-table');
-            table.innerHTML = ""; // Clear cũ
-            // Label
-            let corner = document.createElement('div'); corner.className='label-cell'; corner.innerText="N/CK"; table.appendChild(corner);
-            for(let c=1; c<=18; c++) { let d=document.createElement('div'); d.className='label-cell'; d.innerText=c; table.appendChild(d); }
-            
-            for(let r=1; r<=7; r++) {
-                let rowL = document.createElement('div'); rowL.className='label-cell'; rowL.innerText=r; table.appendChild(rowL);
-                for(let c=1; c<=18; c++) {
-                    let slot = document.createElement('div');
-                    let el = elementsData.find(e=>e.row===r && e.col===c);
-                    if(el) {
-                        slot.className='slot'; slot.dataset.z=el.z;
-                        slot.onclick = ()=>checkMove(slot);
-                    } else {
-                        // Ẩn ô thừa
-                         const isMain = (r <= 3 && (c<=2 || c>=13)) || (r==4 && c<=2);
-                         slot.className='slot'; slot.style.visibility='hidden';
-                    }
-                    table.appendChild(slot);
-                }
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas'); const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            const pieces = []; const colors = ['#00f3ff', '#00ff9d', '#ff0055', '#ffff00'];
+            for(let i=0; i<150; i++) pieces.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height-canvas.height, color:colors[Math.floor(Math.random()*colors.length)], size:Math.random()*8+4, speed:Math.random()*5+2});
+            function draw() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                pieces.forEach(p => { ctx.fillStyle=p.color; ctx.fillRect(p.x,p.y,p.size,p.size); p.y+=p.speed; if(p.y>canvas.height) p.y=-20; });
+                requestAnimationFrame(draw);
             }
-        }
-
-        function initHand() {
-            const hand = document.getElementById('hand-container');
-            hand.innerHTML = "";
-            const shuffled = [...elementsData].sort(()=>0.5-Math.random());
-            shuffled.forEach(el => {
-                let c = document.createElement('div'); c.className='card-info';
-                c.innerHTML = `<div class="symbol-large">${el.sym}</div><div><b>${el.name}</b><br><small>${el.conf}</small></div>`;
-                c.onclick = ()=> {
-                    if(!gameActive) return;
-                    if(selectedCardDiv) selectedCardDiv.classList.remove('selected');
-                    selectedCardDiv = c; selectedElement = el; c.classList.add('selected');
-                }
-                hand.appendChild(c);
-            });
-        }
-
-        function checkMove(slot) {
-            if(!gameActive || !selectedElement || slot.classList.contains('filled')) return;
-            
-            if(parseInt(slot.dataset.z) === selectedElement.z) {
-                // Đúng
-                slot.className = 'slot filled'; slot.innerText = selectedElement.sym;
-                selectedCardDiv.remove(); selectedElement=null; selectedCardDiv=null;
-                if(document.getElementById('hand-container').children.length === 0) endGame("WIN");
-            } else {
-                // Sai
-                slot.classList.add('incorrect'); setTimeout(()=>slot.classList.remove('incorrect'), 500);
-                lives--;
-                let hearts = ""; for(let i=0;i<lives;i++) hearts+="\u2764 ";
-                document.getElementById('lives-display').innerText = hearts;
-                if(lives===0) endGame("LOSE");
-            }
+            draw();
         }
     </script>
 </body>
 </html>
-

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Chem: Classroom Final</title>
+    <title>Cyber Chem: Secure Mode</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -31,8 +31,7 @@
         .login-box {
             width: 80%; max-width: 320px; text-align: center;
             border: 2px solid var(--neon-blue); padding: 30px; border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
-            background: #1e293b;
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); background: #1e293b;
         }
         .login-input {
             width: 100%; padding: 12px; margin: 20px 0; box-sizing: border-box;
@@ -43,25 +42,22 @@
             background: var(--neon-blue); color: #000;
             padding: 12px 40px; font-size: 18px; font-weight: bold; border: none;
             border-radius: 50px; cursor: pointer; box-shadow: 0 0 15px var(--neon-blue);
-            transition: transform 0.2s;
         }
-        .start-btn:active { transform: scale(0.95); }
 
         /* --- HEADER --- */
         .header {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 15px; background: rgba(30, 41, 59, 0.9);
-            border-bottom: 2px solid var(--neon-blue);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); z-index: 10;
+            border-bottom: 2px solid var(--neon-blue); z-index: 10;
         }
         .student-name { 
             color: var(--neon-blue); font-weight: bold; font-size: 14px; 
             text-transform: uppercase; border: 1px solid var(--neon-blue); 
-            padding: 5px 10px; border-radius: 20px; box-shadow: 0 0 5px var(--neon-blue);
+            padding: 5px 10px; border-radius: 20px;
         }
-        .lives-box { font-size: 22px; color: var(--neon-red); letter-spacing: 3px; text-shadow: 0 0 10px var(--neon-red); }
+        .lives-box { font-size: 22px; color: var(--neon-red); letter-spacing: 3px; }
 
-        /* --- BẢNG TUẦN HOÀN --- */
+        /* --- BOARD --- */
         #board-wrapper {
             flex: 2; overflow: auto; padding: 20px; position: relative;
             background-image: linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
@@ -91,7 +87,6 @@
         #hand-container {
             flex: 1; padding: 10px; background: #0b1120; border-top: 1px solid #334155;
             overflow-y: auto; display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
         }
         .card-info {
             width: 95%; max-width: 400px; background: linear-gradient(145deg, #1e293b, #0f172a);
@@ -103,7 +98,6 @@
         .symbol-large {
             font-size: 22px; font-weight: bold; color: white; background: var(--neon-blue);
             width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            text-shadow: 1px 1px 2px black;
         }
 
         /* --- END SCREEN --- */
@@ -113,11 +107,15 @@
             z-index: 10000; animation: fadeIn 0.5s; background: rgba(0,0,0,0.95);
         }
         .game-over-text { font-size: 32px; font-weight: bold; color: white; text-align: center; margin-bottom: 10px; text-shadow: 0 0 20px white; }
-        .report-btn {
-            padding: 15px 30px; font-size: 18px; font-weight: bold; border: none; border-radius: 30px;
-            cursor: pointer; margin-top: 20px; text-decoration: none; display: inline-block;
-            box-shadow: 0 0 20px var(--neon-green); color: black; background: var(--neon-green);
+        
+        /* Nút gửi thông minh */
+        .secure-btn {
+            padding: 15px 40px; font-size: 18px; font-weight: bold; border: none; border-radius: 30px;
+            cursor: pointer; margin-top: 20px;
+            box-shadow: 0 0 20px var(--neon-blue); color: black; background: var(--neon-blue);
+            transition: all 0.3s;
         }
+        .secure-btn:disabled { background: #555; color: #888; cursor: not-allowed; box-shadow: none; }
 
         @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-5px);} 75% {transform:translateX(5px);} }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
@@ -142,9 +140,10 @@
         <div class="game-over-text" id="endMessage"></div>
         <div style="color:#ddd; margin-bottom: 20px; font-size: 16px;" id="endSubMessage"></div>
         
-        <a id="submitBtn" class="report-btn" target="_blank">GỬI KẾT QUẢ CHO GV &#10148;</a>
+        <button id="secureSubmitBtn" class="secure-btn" onclick="secureSubmit()">GỬI KẾT QUẢ CHO GV</button>
+        <p id="submitStatus" style="color: #00ff9d; margin-top: 10px; display: none;">Đang gửi dữ liệu...</p>
         
-        <button onclick="location.reload()" style="margin-top:30px; background:transparent; border:1px solid #777; color:#aaa; padding:10px 25px; border-radius:20px; cursor:pointer;">Chơi Lại (Reset)</button>
+        <button onclick="location.reload()" style="margin-top:30px; background:transparent; border:1px solid #777; color:#aaa; padding:10px 25px; border-radius:20px; cursor:pointer;">Chơi Lại</button>
     </div>
 
     <div class="header">
@@ -160,7 +159,8 @@
 
     <script>
         // ==========================================================
-        // Dán Link Google Form (Pre-filled) của bạn vào dưới đây:
+        // Dán Link Google Form (Pre-filled) CŨ của bạn vào đây
+        // (Link có dạng .../viewform?usp=pp_url&entry.123456=)
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHuAcL2XG8KZ2zoYl7BCJ4fqqKczB1TpSAHGhOJuVI48hLbg/viewform?usp=pp_url&entry.1300305870="; 
         // ==========================================================
 
@@ -186,7 +186,6 @@
             { z: 19, row: 4, col: 1, sym: 'K', name: 'Potassium', conf: '[Ar]4s¹' },
             { z: 20, row: 4, col: 2, sym: 'Ca', name: 'Calcium', conf: '[Ar]4s²' }
         ];
-
         const groupLabels = ['', 'IA', 'IIA', '', '', '', '', '', '', '', '', '', '', 'IIIA', 'IVA', 'VA', 'VIA', 'VIIA', 'VIIIA'];
         
         let currentUser = "";
@@ -194,14 +193,14 @@
         let selectedElement = null;
         let selectedCardDiv = null;
         let gameActive = false;
+        let finalStatus = ""; // Lưu trạng thái WIN/LOSE để gửi
 
-        // --- AUDIO SYSTEM ---
+        // --- AUDIO & EFFECTS ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSound(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            
             if (type === 'correct') {
                 osc.type='sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime+0.1);
                 gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime+0.4);
@@ -224,8 +223,6 @@
                 });
             }
         }
-
-        // --- PARTICLES ---
         function createParticles(x, y) {
             for (let i=0; i<12; i++) {
                 const p=document.createElement('div'); p.className='particle'; document.body.appendChild(p);
@@ -236,7 +233,7 @@
             }
         }
 
-        // --- GAME FLOW ---
+        // --- GAME LOGIC ---
         function startGame() {
             const input = document.getElementById('studentNameInput').value.trim();
             if (!input) { alert("Vui lòng nhập tên!"); return; }
@@ -252,23 +249,17 @@
             const table = document.getElementById('periodic-table'); table.innerHTML = "";
             let corner = document.createElement('div'); corner.className='label-cell'; corner.innerText="N/CK"; table.appendChild(corner);
             for(let c=1; c<=18; c++) { let d=document.createElement('div'); d.className='label-cell label-col'; d.innerText=groupLabels[c]||c; if(!groupLabels[c]) d.style.opacity=0.3; table.appendChild(d); }
-            
             for(let r=1; r<=7; r++) {
                 let rl = document.createElement('div'); rl.className='label-cell label-row'; rl.innerText=r; table.appendChild(rl);
                 for(let c=1; c<=18; c++) {
                     let slot = document.createElement('div');
                     let el = elementsData.find(e=>e.row===r && e.col===c);
-                    if(el) {
-                        slot.className='slot'; slot.dataset.z=el.z; slot.onclick=(e)=>handleClick(slot, e);
-                    } else {
-                        const isMain = (r <= 3 && (c<=2 || c>=13)) || (r==4 && c<=2);
-                        slot.className='slot'; slot.style.visibility='hidden';
-                    }
+                    if(el) { slot.className='slot'; slot.dataset.z=el.z; slot.onclick=(e)=>handleClick(slot, e); } 
+                    else { const isMain = (r <= 3 && (c<=2 || c>=13)) || (r==4 && c<=2); slot.className='slot'; slot.style.visibility='hidden'; }
                     table.appendChild(slot);
                 }
             }
         }
-
         function initHand() {
             const hand = document.getElementById('hand-container'); hand.innerHTML = "";
             const shuffled = [...elementsData].sort(()=>0.5-Math.random());
@@ -284,68 +275,40 @@
                 hand.appendChild(c);
             });
         }
-
         function handleClick(slot, e) {
             if(!gameActive || !selectedElement || slot.classList.contains('filled')) return;
-            
             if(parseInt(slot.dataset.z) === selectedElement.z) {
-                // ĐÚNG
                 slot.className = 'slot filled'; slot.innerText = selectedElement.sym;
                 playSound('correct');
                 const rect = slot.getBoundingClientRect(); createParticles(rect.left+20, rect.top+20);
                 selectedCardDiv.style.opacity = '0'; setTimeout(()=>selectedCardDiv.remove(), 200);
                 selectedElement=null; selectedCardDiv=null;
-                
-                // --- PHẦN SỬA LỖI QUAN TRỌNG: ĐẾM SỐ Ô ĐÃ ĐIỀN ĐỂ XÁC ĐỊNH THẮNG ---
-                const filledCount = document.querySelectorAll('.slot.filled').length;
-                if(filledCount === elementsData.length) { 
-                    setTimeout(()=>endGame("WIN"), 500);
-                }
+                if(document.querySelectorAll('.slot.filled').length === elementsData.length) { setTimeout(()=>endGame("WIN"), 500); }
             } else {
-                // SAI
                 slot.classList.add('incorrect'); setTimeout(()=>slot.classList.remove('incorrect'), 500);
-                playSound('wrong');
-                if(navigator.vibrate) navigator.vibrate(100);
-                lives--;
-                updateLives();
-                if(lives===0) endGame("LOSE");
+                playSound('wrong'); if(navigator.vibrate) navigator.vibrate(100);
+                lives--; updateLives(); if(lives===0) endGame("LOSE");
             }
         }
-
-        function updateLives() {
-            let s = ""; for(let i=0;i<lives;i++) s+="\u2764 ";
-            document.getElementById('lives-display').innerText = s;
-        }
+        function updateLives() { let s = ""; for(let i=0;i<lives;i++) s+="\u2764 "; document.getElementById('lives-display').innerText = s; }
 
         function endGame(status) {
             gameActive = false;
+            finalStatus = status; // Lưu trạng thái để gửi
+            
             const screen = document.getElementById('endScreen');
-            const msg = document.getElementById('endMessage');
-            const sub = document.getElementById('endSubMessage');
-            const btn = document.getElementById('submitBtn');
-
             screen.style.display = 'flex';
             
-            if (GOOGLE_FORM_URL === "") {
-                btn.style.display = "none"; sub.innerText = "(Giáo viên chưa cài đặt link nộp bài)";
-            } else {
-                // TẠO LINK NỘP BÀI
-                const finalLink = `${GOOGLE_FORM_URL}${encodeURIComponent(currentUser)} - ${status}`;
-                btn.href = finalLink;
-                btn.style.display = "inline-block"; // Hiện nút
-            }
-
             if (status === "WIN") {
                 playSound('win'); startConfetti();
                 screen.style.background = "rgba(0, 50, 0, 0.95)";
-                msg.innerText = "NHIỆM VỤ HOÀN THÀNH!";
-                msg.style.color = "#00ff9d";
-                sub.innerText = "Em đã xuất sắc chinh phục bảng tuần hoàn.";
+                document.getElementById('endMessage').innerText = "CHIẾN THẮNG!";
+                document.getElementById('endSubMessage').innerText = "Bạn đã hoàn thành bảng tuần hoàn.";
             } else {
                 playSound('fail');
                 screen.style.background = "var(--game-over-purple)";
-                msg.innerText = "HỆ THỐNG QUÁ TẢI!";
-                sub.innerText = "Bạn đã sai quá 3 lần.";
+                document.getElementById('endMessage').innerText = "THẤT BẠI!";
+                document.getElementById('endSubMessage').innerText = "Hệ thống quá tải. Sai quá 3 lần.";
             }
         }
 
@@ -360,6 +323,65 @@
                 requestAnimationFrame(draw);
             }
             draw();
+        }
+
+        // ==========================================
+        // HỆ THỐNG GỬI NGẦM (ANTI-CHEAT SYSTEM)
+        // ==========================================
+        async function secureSubmit() {
+            if (GOOGLE_FORM_URL === "") {
+                alert("Giáo viên chưa dán Link Google Form vào Code!"); return;
+            }
+
+            const btn = document.getElementById('secureSubmitBtn');
+            const statusTxt = document.getElementById('submitStatus');
+            btn.disabled = true;
+            btn.innerText = "ĐANG GỬI...";
+            statusTxt.style.display = "block";
+            statusTxt.innerText = "Đang kết nối đến máy chủ...";
+
+            // 1. Phân tích Link để lấy ID
+            // Link dạng: https://docs.google.com/forms/d/e/[FORM_ID]/viewform?usp=pp_url&entry.[ENTRY_ID]=
+            try {
+                const formIdMatch = GOOGLE_FORM_URL.match(/\/d\/e\/(.+?)\//);
+                const entryIdMatch = GOOGLE_FORM_URL.match(/entry\.(\d+)=/);
+
+                if (!formIdMatch || !entryIdMatch) {
+                    throw new Error("Link không đúng định dạng!");
+                }
+
+                const formID = formIdMatch[1];
+                const entryID = entryIdMatch[1];
+                const submitURL = `https://docs.google.com/forms/d/e/${formID}/formResponse`;
+                const dataValue = `${currentUser} - ${finalStatus}`;
+
+                // 2. Gửi dữ liệu bằng fetch (mode: no-cors)
+                // Lưu ý: no-cors sẽ không trả về json, nhưng vẫn gửi dữ liệu đi được
+                await fetch(submitURL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `entry.${entryID}=${encodeURIComponent(dataValue)}`
+                });
+
+                // 3. Thông báo thành công giả lập (vì no-cors không báo lỗi mạng)
+                statusTxt.innerText = "ĐÃ GỬI THÀNH CÔNG!";
+                statusTxt.style.color = "#00ff9d";
+                btn.innerText = "ĐÃ NỘP BÀI";
+                
+                // Hiệu ứng ăn mừng
+                if(navigator.vibrate) navigator.vibrate([100,50,100]);
+                alert(`Đã gửi kết quả của ${currentUser} thành công!`);
+
+            } catch (error) {
+                console.error(error);
+                statusTxt.innerText = "Lỗi đường truyền. Vui lòng thử lại hoặc báo GV.";
+                statusTxt.style.color = "red";
+                btn.disabled = false;
+                btn.innerText = "GỬI LẠI";
+            }
         }
     </script>
 </body>
